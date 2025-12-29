@@ -4,25 +4,20 @@ class ApiFeature {
     this.queryString = queryString;
   }
 
-  // 🔍 Fast text-based search
+  // 🔍 Text-based search using regex (works without needing model import)
   search() {
     const { search } = this.queryString;
     if (search) {
       const trimmed = search.trim();
-
-      // ✅ If text index exists, prefer $text (MUCH faster than regex)
-      if (Product.schema?.indexes?.some((idx) => "$**_text" in idx)) {
-        this.findQuery = this.findQuery.find({ $text: { $search: trimmed } });
-      } else {
-        this.findQuery = this.findQuery.find({
-          $or: [
-            { name: new RegExp(trimmed, "i") },
-            { description: new RegExp(trimmed, "i") },
-            { category: new RegExp(trimmed, "i") },
-            { brand: new RegExp(trimmed, "i") },
-          ],
-        });
-      }
+      // Use regex search for flexibility across all text fields
+      this.findQuery = this.findQuery.find({
+        $or: [
+          { name: new RegExp(trimmed, "i") },
+          { description: new RegExp(trimmed, "i") },
+          { category: new RegExp(trimmed, "i") },
+          { brand: new RegExp(trimmed, "i") },
+        ],
+      });
     }
     return this;
   }

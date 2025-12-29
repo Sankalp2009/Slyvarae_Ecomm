@@ -1,35 +1,32 @@
-import jwt from "jsonwebtoken"
+import jwt from "jsonwebtoken";
 
+const GenerateToken = async (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET_KEY, { expiresIn: "7d" });
+};
 
-const GenerateToken = async(id) => {
- return jwt.sign({ id }, process.env.JWT_SECRET_KEY);
-}
+export const createSendToken = async (user, code, res, message) => {
+  const id = user._id;
+  const Token = await GenerateToken(id);
 
-export const createSendToken = async(user,code,res,message) => {
-   let id = user._id;
-   
-   const Token = await GenerateToken(id)
+  // Cookie options with security flags for production
+  const cookieOption = {
+    expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days to match JWT
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  };
 
-    // To save the data in cookie instead of sending as JSON string
-  // syntax: res.cookie("token_name", payload/Token, option's)
+  res.cookie("jwt", Token, cookieOption);
 
-const cookieOption = {
-    expires: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
-    httpOnly: true
-  }
+  user.password = undefined;
 
-  res.cookie("jwt",Token,cookieOption);
-
-
-   user.password = undefined;
-   
-   return res.status(code).json({
+  return res.status(code).json({
     status: "success",
     message,
     Token,
     User: user,
   });
-}
+};
 
 // Verify JWT Token
 export const verifyToken = (token) => {

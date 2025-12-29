@@ -155,8 +155,8 @@ export const refreshToken = async (req, res) => {
     // Verify token
     const decoded = verifyToken(token);
 
-    // Check if user still exists
-    const user = await User.findById(decoded.id);
+    // Check if user still exists (use lean for performance)
+    const user = await User.findById(decoded.id).lean();
 
     if (!user) {
       return res.status(401).json({

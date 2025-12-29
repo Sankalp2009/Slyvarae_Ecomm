@@ -2,7 +2,7 @@ const InitialState = {
   item: [],
   IsError: null,
   IsLoading: false,
-  selectedProduct:null
+  selectedProduct: null,
 };
 
 export const reducer = (currentState = InitialState, action) => {
@@ -15,7 +15,7 @@ export const reducer = (currentState = InitialState, action) => {
         IsError: null,
         IsLoading: true,
       };
-    case "GET_SUCCESS":  
+    case "GET_SUCCESS":
       return {
         ...currentState,
         item: payload,
@@ -31,7 +31,7 @@ export const reducer = (currentState = InitialState, action) => {
         },
       };
     case "GET_FAILURE":
-    case "GET_FAILURE_BY_ID":  
+    case "GET_FAILURE_BY_ID":
       return {
         ...currentState,
         IsError: true,
@@ -42,12 +42,12 @@ export const reducer = (currentState = InitialState, action) => {
       return {
         ...currentState,
         item: currentState.item.map((product) =>
-          product._id === payload
+          product._id === payload._id
             ? { ...product, stock: payload.stock }
             : product
         ),
         selectedProduct:
-          currentState.selectedProduct?._id === payload
+          currentState.selectedProduct?._id === payload._id
             ? { ...currentState.selectedProduct, stock: payload.stock }
             : currentState.selectedProduct,
       };
