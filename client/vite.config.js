@@ -1,11 +1,16 @@
+/* eslint-disable no-undef */
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  esbuild: {
+    drop: process.env.NODE_ENV === "production" ? ["console", "debugger"] : [],
+  },
   build: {
     chunkSizeWarningLimit: 1600,
+    minify: "esbuild", // Explicitly use esbuild (built-in)
     rollupOptions: {
       output: {
         manualChunks: {
@@ -24,14 +29,6 @@ export default defineConfig({
           // Utilities
           "utils-vendor": ["axios"],
         },
-      },
-    },
-    // Optimize chunk size
-    minify: "terser",
-    terserOptions: {
-      compress: {
-        drop_console: process.env.NODE_ENV === "production",
-        drop_debugger: true,
       },
     },
   },
