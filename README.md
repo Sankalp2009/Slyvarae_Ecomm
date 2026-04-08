@@ -1,4 +1,4 @@
-# Shopsy API Documentation
+# Sylvarae API Documentation
 
 ## Table of Contents
 - [Overview](#overview)
@@ -15,7 +15,7 @@
 
 ## Overview
 
-Shopsy is a full-featured e-commerce REST API built with Node.js, Express, and MongoDB. It provides comprehensive functionality for user authentication, product management, and role-based access control.
+Sylvarae is a full-featured e-commerce REST API built with Node.js, Express, and MongoDB. It provides comprehensive functionality for user authentication, product management, and role-based access control.
 
 **Technology Stack:**
 - **Runtime:** Node.js
@@ -730,7 +730,7 @@ Authorization: Bearer <admin_token>
 - XSS protection enabled
 
 ### 3. CORS Configuration
-- Configured for production domain: `https://shopsy-ecomm-eight.vercel.app`
+- Configured for production domain: `https://sylvarae-ecomm-eight.vercel.app`
 - Credentials enabled for cookie-based authentication
 - Restricted methods: GET, POST, PUT, PATCH, DELETE
 
@@ -810,7 +810,7 @@ DATABASE_URI=mongodb+srv://...
 JWT_SECRET_KEY=your-secret-key-here
 
 # Super Admin (for seeding) | Admin Access
-SUPER_ADMIN_EMAIL=admin@shopsy.com
+SUPER_ADMIN_EMAIL=admin@sylvarae.com
 SUPER_ADMIN_PASSWORD=admin123
 SUPER_ADMIN_NAME=Super Admin
 
@@ -888,9 +888,9 @@ For issues, questions, or feature requests:
 ```
 Maintainer: Sankalp Patel
 
-Project Repo: Shopsy E-commerce API
+Project Repo: Sylvarae E-commerce API
 
 Deployed API: https://slyvarae-ecomm.onrender.com
 
-© 2025 Shopsy API — Built with ❤️ using Node.js, Express & MongoDB
+© 2025 Sylvarae API — Built with ❤️ using Node.js, Express & MongoDB
 ```
