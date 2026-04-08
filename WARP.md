@@ -205,7 +205,7 @@ PORT=8080
 ### Client
 - No environment variables are currently required
 - API URL is hardcoded based on NODE_ENV in server CORS config
-- Production: `https://shopsy-ecomm-eight.vercel.app`
+- Production: `https://slyvarae-ecomm-eight.vercel.app`
 - Development: `http://localhost:5173`
 
 ## API Endpoints
@@ -267,7 +267,7 @@ PORT=8080
 
 **Deployment:**
 - Server deployed on Render: `https://slyvarae-ecomm.onrender.com`
-- Client deployed on Vercel: `https://shopsy-ecomm-eight.vercel.app`
+- Client deployed on Vercel: `https://slyvarae-ecomm-eight.vercel.app`
 - Server trusts proxy for correct IP detection behind reverse proxies
 
 **Windows-Specific:**

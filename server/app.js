@@ -32,7 +32,7 @@ app.use(
   cors({
     origin:
       process.env.NODE_ENV === "production"
-        ? "https://shopsy-ecomm-eight.vercel.app"
+        ? "https://slyvarae-ecomm-eight.vercel.app"
         : "http://localhost:5173",
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: true,

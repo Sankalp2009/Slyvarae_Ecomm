@@ -730,7 +730,7 @@ Authorization: Bearer <admin_token>
 - XSS protection enabled
 
 ### 3. CORS Configuration
-- Configured for production domain: `https://sylvarae-ecomm-eight.vercel.app`
+- Configured for production domain: `https://slyvarae-ecomm-eight.vercel.app`
 - Credentials enabled for cookie-based authentication
 - Restricted methods: GET, POST, PUT, PATCH, DELETE
 
