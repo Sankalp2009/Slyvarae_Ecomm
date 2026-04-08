@@ -30,7 +30,7 @@ Shopsy is a full-featured e-commerce REST API built with Node.js, Express, and M
 ## Base URL
 
 ```
-Production: https://shopsy.up.railway.app
+Production: https://slyvarae-ecomm.onrender.com
 Development: http://localhost:8080
 ```
 
@@ -890,7 +890,7 @@ Maintainer: Sankalp Patel
 
 Project Repo: Shopsy E-commerce API
 
-Deployed API: https://shopsy.up.railway.app
+Deployed API: https://slyvarae-ecomm.onrender.com
 
 © 2025 Shopsy API — Built with ❤️ using Node.js, Express & MongoDB
 ```

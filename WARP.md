@@ -266,7 +266,7 @@ PORT=8080
 - Redux saves throttled to max once per second
 
 **Deployment:**
-- Server deployed on Railway: `https://shopsy.up.railway.app`
+- Server deployed on Render: `https://slyvarae-ecomm.onrender.com`
 - Client deployed on Vercel: `https://shopsy-ecomm-eight.vercel.app`
 - Server trusts proxy for correct IP detection behind reverse proxies
 

@@ -20,7 +20,7 @@ import ProductCard from "../../Component/ProductCard.jsx";
 import { Toaster, toaster } from "../../components/ui/toaster.jsx";
 import { Action_Type } from "../../Redux/Product_Reducer/action.jsx";
 
-const API_BASE_URL = "https://shopsy.up.railway.app/api/v1/Products";
+const API_BASE_URL = "https://slyvarae-ecomm.onrender.com/api/v1/Products";
 
 const getCurrentPage = (value) => {
   const pageNum = Number(value);

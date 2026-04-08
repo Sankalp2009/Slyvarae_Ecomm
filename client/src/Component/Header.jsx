@@ -200,7 +200,7 @@ function Header() {
                     letterSpacing="-0.03em"
                     lineHeight="1"
                   >
-                    Shop
+                    ----
                   </Heading>
                   <Heading
                     size={{ base: "md", md: "lg" }}
@@ -209,7 +209,7 @@ function Header() {
                     letterSpacing="-0.03em"
                     lineHeight="1"
                   >
-                    shopsy
+                    Sylvarae
                   </Heading>
                 </Flex>
                 <Flex

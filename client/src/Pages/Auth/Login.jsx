@@ -54,7 +54,7 @@ function Login() {
 
     try {
       dispatch({ type: Action_Type.LOGIN_REQUEST });
-      let Response = await fetch("https://shopsy.up.railway.app/api/v1/users/login", {
+      let Response = await fetch("https://slyvarae-ecomm.onrender.com/api/v1/users/login", {
         method: "post",
         headers: {
           "content-Type": "application/json",

@@ -59,7 +59,7 @@ import axios from "axios";
 import { updateOrderStatus } from "../Redux/Order_Reducer/action.jsx";
 import { useDispatch } from "react-redux";
 
-const API_BASE_URL = "https://shopsy.up.railway.app/api/v1";
+const API_BASE_URL = "https://slyvarae-ecomm.onrender.com/api/v1";
 
 function Admin() {
   const navigate = useNavigate();

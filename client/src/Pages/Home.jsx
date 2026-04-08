@@ -974,7 +974,7 @@ function Home() {
                 maxW="xl"
                 mx="auto"
               >
-                Join thousands of satisfied customers and discover why Shopsy is
+                Join thousands of satisfied customers and discover why Sylvarae is
                 the preferred destination for premium products.
               </Text>
 
