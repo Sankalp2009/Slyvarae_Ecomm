@@ -4,14 +4,10 @@ import {
   Text,
   Box,
   Flex,
-  Grid,
-  Center,
-  Badge,
   Button,
-  NativeSelect,
   IconButton,
-  Drawer,
 } from "@chakra-ui/react";
+import { X } from "lucide-react";
 const FilterSidebar = ({
   allCategories,
   categoriesLoading,
