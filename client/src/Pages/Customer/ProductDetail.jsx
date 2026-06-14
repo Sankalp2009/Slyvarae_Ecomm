@@ -160,7 +160,7 @@ function ProductDetail() {
   }, [LoadData]);
 
   // Loading state
-  if (!IsLoading || !selectedProduct) {
+  if (IsLoading || !selectedProduct) {
     return (
       <Center minH="100vh" bg="gray.50">
         <VStack gap={4}>
