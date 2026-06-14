@@ -56,9 +56,9 @@ function AllRoutes() {
         <Route
           path="/me"
           element={
-            <>
+            <ProtectedRoute>
               <Profile />
-            </>
+            </ProtectedRoute>
           }
         />
 
