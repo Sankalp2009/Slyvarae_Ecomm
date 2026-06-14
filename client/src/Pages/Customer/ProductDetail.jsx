@@ -46,7 +46,9 @@ function ProductDetail() {
   
   const [imageLoaded, setImageLoaded] = useState(false);
 
-  const { selectedProduct, IsLoading } = useSelector((state) => state.product);
+  const { selectedProduct, IsLoading, IsError } = useSelector(
+    (state) => state.product
+  );
 
   const { items } = useSelector((state) => state.cart);
 
@@ -55,7 +57,7 @@ function ProductDetail() {
   // Fetch product details
   const LoadData = useCallback(async () => {
     try {
-      dispatch({ type: Product.GET_REQUEST });
+      dispatch({ type: Product.GET_REQUEST_BY_ID });
       const response = await axios.get(
         `https://slyvarae-ecomm.onrender.com/api/v1/Products/${id}`,
         {
@@ -70,7 +72,6 @@ function ProductDetail() {
         type: Product.GET_SUCCESS_BY_ID,
         payload: response?.data?.data,
       });
-
     } catch (error) {
       console.error("❌ API Error:", error);
       toaster.error({
@@ -79,7 +80,7 @@ function ProductDetail() {
           error.response?.data?.message || "Failed to fetch products",
       });
       dispatch({
-        type: Product.GET_FAILURE,
+        type: Product.GET_FAILURE_BY_ID,
         payload: error.response?.data?.message,
       });
     }
@@ -154,13 +155,56 @@ function ProductDetail() {
 
   // Load data
   useEffect(() => {
+    setQuantity(1);
+    setImageLoaded(false);
     LoadData();
     setIsAdded(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [LoadData]);
 
-  // Loading state
-  if (IsLoading || !selectedProduct) {
+  const productId = selectedProduct?._id ?? selectedProduct?.id;
+  const productMatchesRoute =
+    productId != null && String(productId) === String(id);
+
+  if (IsLoading) {
+    return (
+      <Center minH="100vh" bg="gray.50">
+        <VStack gap={4}>
+          <Spinner size="xl" color="purple.500" thickness="4px" />
+          <Text fontSize={{ base: "md", md: "lg" }} color="gray.600">
+            Loading product details...
+          </Text>
+        </VStack>
+      </Center>
+    );
+  }
+
+  if (IsError) {
+    return (
+      <Center minH="100vh" bg="gray.50" px={4}>
+        <VStack gap={4} maxW="md" textAlign="center">
+          <AlertCircle size={48} color="#dc2626" />
+          <Heading size="lg">Could not load product</Heading>
+          <Text color="gray.600">
+            The product may not exist or the request failed. Try again or go
+            back to the catalog.
+          </Text>
+          <Flex gap={3} flexWrap="wrap" justify="center">
+            <Button colorPalette="purple" onClick={() => LoadData()}>
+              Retry
+            </Button>
+            <Link to="/product">
+              <Button variant="outline" colorPalette="purple">
+                Back to Products
+              </Button>
+            </Link>
+          </Flex>
+        </VStack>
+      </Center>
+    );
+  }
+
+  if (!selectedProduct || !productMatchesRoute) {
     return (
       <Center minH="100vh" bg="gray.50">
         <VStack gap={4}>

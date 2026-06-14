@@ -58,6 +58,7 @@ import { useSelector } from "react-redux";
 import axios from "axios";
 import { updateOrderStatus, deleteOrder } from "../Redux/Order_Reducer/action.jsx";
 import { useDispatch } from "react-redux";
+import { authHeaders } from "../Utils/authHeaders.js";
 
 const API_BASE_URL = "https://slyvarae-ecomm.onrender.com/api/v1";
 
@@ -65,7 +66,7 @@ function Admin() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { Order } = useSelector((state) => state.order);
-  const { user } = useSelector((state) => state.auth);
+  const { user, access_token } = useSelector((state) => state.auth);
 
   // State management
   const [activeTab, setActiveTab] = useState("overview");
@@ -114,7 +115,9 @@ function Admin() {
     setLoading(true);
     try {
       // Fetch products
-      const productsRes = await axios.get(`${API_BASE_URL}/Products?limit=100`);
+      const productsRes = await axios.get(`${API_BASE_URL}/Products?limit=100`, {
+        headers: authHeaders(access_token),
+      });
       const productsData = productsRes.data?.data || [];
       setProducts(productsData);
 
@@ -203,7 +206,9 @@ function Admin() {
     }
 
     try {
-      await axios.delete(`${API_BASE_URL}/Products/${productId}`);
+      await axios.delete(`${API_BASE_URL}/Products/${productId}`, {
+        headers: authHeaders(access_token),
+      });
       setProducts((prev) => prev.filter((p) => p._id !== productId));
       toaster.success({
         title: "Product Deleted",

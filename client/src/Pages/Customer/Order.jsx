@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import {
   Box,
@@ -62,8 +62,14 @@ const getOrderDisplayTotal = (order) => {
 function Order() {
   const navigate = useNavigate();
   
-  const {Order} = useSelector(state => state.order);
-  
+  const { Order } = useSelector((state) => state.order);
+  const { user } = useSelector((state) => state.auth);
+
+  const myOrders = useMemo(
+    () => Order.filter((order) => order.userId === user?._id),
+    [Order, user?._id]
+  );
+
   const { items } = useSelector((state) => state.cart);
   
   const CartCount = items.length;
@@ -116,21 +122,20 @@ function Order() {
     return configs[status] || configs.processing;
   };
 
-  const filterData = Order.filter(el=>{
+  const filterData = myOrders.filter((el) => {
     if (filter === "all") return true;
-    return el.status === filter
-  })
+    return el.status === filter;
+  });
 
   const orderCounts = {
-    all: Order.length,
-    pending: Order.filter((o) => o.status === "pending").length,
-    processing: Order.filter((o) => o.status === "processing").length,
-    shipped: Order.filter((o) => o.status === "shipped").length,
-    delivered: Order.filter((o) => o.status === "delivered").length,
+    all: myOrders.length,
+    pending: myOrders.filter((o) => o.status === "pending").length,
+    processing: myOrders.filter((o) => o.status === "processing").length,
+    shipped: myOrders.filter((o) => o.status === "shipped").length,
+    delivered: myOrders.filter((o) => o.status === "delivered").length,
   };
-  
-   // Empty Cart State
-  if (Order.length === 0) {
+
+  if (myOrders.length === 0) {
     return (
       <Flex minH="80vh" justify="center" align="center" textAlign="center" px={4}>
         <Flex
