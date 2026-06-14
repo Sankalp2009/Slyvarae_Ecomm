@@ -1,9 +1,8 @@
-import React, { useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { Action_Type } from "../../Redux/Cart_Reducer/action.jsx";
-import { Order_Action_Type } from "../../Redux/Order_Reducer/action.jsx";
-import CartItem from "../../Component/CartItem.jsx";
-import { useNavigate, Link } from "react-router";
+import React, { useState } from 'react'
+import { useSelector, useDispatch } from 'react-redux'
+import { Action_Type } from '../../Redux/Cart_Reducer/action.jsx'
+import { Order_Action_Type } from '../../Redux/Order_Reducer/action.jsx'
+import { useNavigate, Link } from 'react-router'
 
 import {
   Box,
@@ -19,7 +18,7 @@ import {
   Stack,
   Badge,
   Separator,
-} from "@chakra-ui/react";
+} from '@chakra-ui/react'
 import {
   DialogRoot,
   DialogContent,
@@ -28,53 +27,118 @@ import {
   DialogFooter,
   DialogTitle,
   DialogCloseTrigger,
-} from "../../components/ui/dialog";
+} from '../../components/ui/dialog'
 
-import { CheckCircle, Sparkles, CreditCard, MapPin, ShoppingBag, ArrowLeft } from "lucide-react";
+import {
+  CheckCircle,
+  Sparkles,
+  CreditCard,
+  MapPin,
+  ShoppingBag,
+  ArrowLeft,
+} from 'lucide-react'
+import { toaster } from '../../components/ui/toaster.jsx'
+
+const CHECKOUT_FORM_ID = 'checkout-shipping-form'
+
+const trimFormData = (data) =>
+  Object.fromEntries(
+    Object.entries(data).map(([key, value]) => [key, String(value).trim()])
+  )
+
+const parseUnitPrice = (item) => {
+  const raw = item?.price ?? item?.product?.price ?? 0
+  const value = typeof raw === 'string' ? parseFloat(raw) : Number(raw)
+  return Number.isFinite(value) ? value : 0
+}
+
+const computeOrderTotals = (cartItems) => {
+  const subtotal = cartItems.reduce(
+    (acc, item) => acc + parseUnitPrice(item) * (item.quantity || 1),
+    0
+  )
+  const tax = subtotal * 0.1
+  const shippingFee = subtotal > 50 ? 0 : 10
+  const total = subtotal + tax + shippingFee
+  return { subtotal, tax, shipping: shippingFee, total }
+}
 
 const InitialState = {
-  fullName: "",
-  email: "",
-  address: "",
-  city: "",
-  state: "",
-  zipCode: "",
-  phone: "",
-};
+  fullName: '',
+  email: '',
+  address: '',
+  city: '',
+  state: '',
+  zipCode: '',
+  phone: '',
+}
 
 function Checkout() {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const { items } = useSelector((state) => state.cart);
-  const { user } = useSelector((state) => state.auth);
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+  const { items } = useSelector((state) => state.cart)
+  const { user } = useSelector((state) => state.auth)
+  const [orderSuccess, setOrderSuccess] = useState(null)
+  const [isOrderPlaced, setIsOrderPlaced] = useState(false)
+  const [formData, setFormData] = useState(InitialState)
 
-  const [isOrderPlaced, setIsOrderPlaced] = useState(false);
-  const [formData, setFormData] = useState(InitialState);
-
-  const CartCount = items.length;
-
-  const subtotal = items.reduce(
-    (acc, item) => acc + Math.floor(item.price) * item.quantity,
-    0
-  );
-
-  const tax = subtotal * 0.1;
-  const shipping = subtotal > 50 ? 0 : 10;
-  const total = subtotal + tax + shipping;
+  const { subtotal, tax, shipping, total } = computeOrderTotals(items)
+  const canPlaceOrder = items.length > 0
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value } = e.target
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-    }));
-  };
+    }))
+  }
 
-  const handlePlaceOrder = () => {
+  const handleSubmit = (e) => {
+    e.preventDefault()
+
+    if (items.length === 0) {
+      toaster.error({
+        title: 'Cart is empty',
+        description: 'Add items to your cart before placing an order.',
+      })
+      return
+    }
+
+    const shippingFields = trimFormData(formData)
+    const requiredFields = [
+      'fullName',
+      'email',
+      'address',
+      'city',
+      'state',
+      'zipCode',
+      'phone',
+    ]
+    const missing = requiredFields.filter((field) => !shippingFields[field])
+
+    if (missing.length > 0) {
+      toaster.error({
+        title: 'Shipping information required',
+        description: 'Please complete all required shipping fields.',
+      })
+      return
+    }
+
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailPattern.test(shippingFields.email)) {
+      toaster.error({
+        title: 'Invalid email',
+        description: 'Enter a valid email address.',
+      })
+      return
+    }
+
+    const totals = computeOrderTotals(items)
+
     const order = {
       id: Date.now().toString(),
-      userId: user?._id || "guest",
-      status: "processing",
+      userId: user?._id || 'guest',
+      status: 'processing',
       items: items.map((item) => ({
         productId: item._id,
         name: item.name,
@@ -82,47 +146,58 @@ function Checkout() {
         quantity: item.quantity,
         image: item.image,
       })),
-      totalAmount: subtotal,
+      subtotal: totals.subtotal,
+      tax: totals.tax,
+      shipping: totals.shipping,
+      totalAmount: totals.total,
       shippingAddress: {
-        fullName: formData.fullName,
-        email: formData.email,
-        phone: formData.phone,
-        address: formData.address,
-        city: formData.city,
-        state: formData.state,
-        zipCode: formData.zipCode,
+        fullName: shippingFields.fullName,
+        email: shippingFields.email,
+        phone: shippingFields.phone,
+        address: shippingFields.address,
+        city: shippingFields.city,
+        state: shippingFields.state,
+        zipCode: shippingFields.zipCode,
       },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-    };
+    }
 
-    dispatch({ type: Order_Action_Type.ORDER_CREATED, payload: order });
-    dispatch({ type: Action_Type.CLEAR_CART });
+    dispatch({ type: Order_Action_Type.ORDER_CREATED, payload: order })
 
-    // Show success modal
-    setIsOrderPlaced(true);
-    setFormData(InitialState);
-    
-  };
+    // Snapshot before any cart clear — modal must not read live `total` from empty cart
+    setOrderSuccess({
+      total: totals.total,
+      email: shippingFields.email,
+    })
+    setIsOrderPlaced(true)
+    setFormData(InitialState)
+  }
+
+  const finalizeOrder = () => {
+    dispatch({ type: Action_Type.CLEAR_CART })
+    setIsOrderPlaced(false)
+    setOrderSuccess(null)
+  }
 
   const handleCloseModal = () => {
-    setIsOrderPlaced(false);
-  };
+    finalizeOrder()
+  }
 
   return (
     <Box minH="100vh" py={{ base: 4, md: 8 }} bg="gray.50">
       <Box maxW="7xl" mx="auto" px={{ base: 4, sm: 6, lg: 8 }}>
         {/* Header Section */}
         <Flex
-          direction={{ base: "column", sm: "row" }}
+          direction={{ base: 'column', sm: 'row' }}
           justify="space-between"
-          align={{ base: "flex-start", sm: "center" }}
+          align={{ base: 'flex-start', sm: 'center' }}
           mb={{ base: 6, md: 8 }}
           gap={4}
         >
           <Box>
             <Heading
-              size={{ base: "xl", md: "2xl", lg: "3xl" }}
+              size={{ base: 'xl', md: '2xl', lg: '3xl' }}
               fontWeight="bold"
               bgGradient="to-r"
               gradientFrom="purple.600"
@@ -131,17 +206,17 @@ function Checkout() {
             >
               Checkout
             </Heading>
-            <Text color="gray.600" mt={2} fontSize={{ base: "sm", md: "md" }}>
+            <Text color="gray.600" mt={2} fontSize={{ base: 'sm', md: 'md' }}>
               Complete your purchase
             </Text>
           </Box>
 
           <Button
-            display={{ base: "flex", md: "none" }}
+            display={{ base: 'flex', md: 'none' }}
             variant="outline"
             colorPalette="purple"
             size="sm"
-            onClick={() => navigate("/cart")}
+            onClick={() => navigate('/cart')}
             leftIcon={<ArrowLeft size={16} />}
           >
             Back to Cart
@@ -149,7 +224,7 @@ function Checkout() {
         </Flex>
 
         <Grid
-          templateColumns={{ base: "1fr", lg: "1fr 400px" }}
+          templateColumns={{ base: '1fr', lg: '1fr 400px' }}
           gap={{ base: 6, md: 8 }}
         >
           {/* Left Column - Forms */}
@@ -168,21 +243,27 @@ function Checkout() {
                   bg="purple.100"
                   p={2}
                   borderRadius="lg"
-                  display={{ base: "none", sm: "block" }}
+                  display={{ base: 'none', sm: 'block' }}
                 >
                   <MapPin size={20} color="#7c3aed" />
                 </Box>
-                <Heading size={{ base: "md", md: "lg" }} fontWeight="bold">
+                <Heading size={{ base: 'md', md: 'lg' }} fontWeight="bold">
                   Shipping Information
                 </Heading>
               </Flex>
 
+              <Box
+                as="form"
+                id={CHECKOUT_FORM_ID}
+                onSubmit={handleSubmit}
+                noValidate
+              >
               <Stack gap={{ base: 3, md: 4 }}>
                 {/* Full Name & Email */}
-                <Flex gap={4} direction={{ base: "column", sm: "row" }}>
-                  <Field.Root flex={1}>
-                    <Field.Label fontSize={{ base: "sm", md: "md" }}>
-                      Full Name *
+                <Flex gap={4} direction={{ base: 'column', sm: 'row' }}>
+                  <Field.Root flex={1} required>
+                    <Field.Label fontSize={{ base: 'sm', md: 'md' }}>
+                      Full Name <Field.RequiredIndicator />
                     </Field.Label>
                     <Input
                       type="text"
@@ -190,14 +271,14 @@ function Checkout() {
                       value={formData.fullName}
                       onChange={handleInputChange}
                       placeholder="John Doe"
-                      size={{ base: "md", md: "lg" }}
+                      size={{ base: 'md', md: 'lg' }}
                       required
                     />
                   </Field.Root>
 
-                  <Field.Root flex={1}>
-                    <Field.Label fontSize={{ base: "sm", md: "md" }}>
-                      Email *
+                  <Field.Root flex={1} required>
+                    <Field.Label fontSize={{ base: 'sm', md: 'md' }}>
+                      Email <Field.RequiredIndicator />
                     </Field.Label>
                     <Input
                       type="email"
@@ -205,16 +286,17 @@ function Checkout() {
                       value={formData.email}
                       onChange={handleInputChange}
                       placeholder="john@example.com"
-                      size={{ base: "md", md: "lg" }}
+                      size={{ base: 'md', md: 'lg' }}
                       required
                     />
+
                   </Field.Root>
                 </Flex>
 
                 {/* Address */}
-                <Field.Root>
-                  <Field.Label fontSize={{ base: "sm", md: "md" }}>
-                    Address *
+                <Field.Root required>
+                  <Field.Label fontSize={{ base: 'sm', md: 'md' }}>
+                    Address <Field.RequiredIndicator />
                   </Field.Label>
                   <Input
                     type="text"
@@ -222,16 +304,17 @@ function Checkout() {
                     value={formData.address}
                     onChange={handleInputChange}
                     placeholder="123 Main Street"
-                    size={{ base: "md", md: "lg" }}
+                    size={{ base: 'md', md: 'lg' }}
                     required
                   />
+
                 </Field.Root>
 
                 {/* City & State */}
-                <Flex gap={4} direction={{ base: "column", sm: "row" }}>
-                  <Field.Root flex={1}>
-                    <Field.Label fontSize={{ base: "sm", md: "md" }}>
-                      City *
+                <Flex gap={4} direction={{ base: 'column', sm: 'row' }}>
+                  <Field.Root flex={1} required>
+                    <Field.Label fontSize={{ base: 'sm', md: 'md' }}>
+                      City <Field.RequiredIndicator />
                     </Field.Label>
                     <Input
                       type="text"
@@ -239,14 +322,15 @@ function Checkout() {
                       value={formData.city}
                       onChange={handleInputChange}
                       placeholder="New York"
-                      size={{ base: "md", md: "lg" }}
+                      size={{ base: 'md', md: 'lg' }}
                       required
                     />
+
                   </Field.Root>
 
-                  <Field.Root flex={1}>
-                    <Field.Label fontSize={{ base: "sm", md: "md" }}>
-                      State *
+                  <Field.Root flex={1} required>
+                    <Field.Label fontSize={{ base: 'sm', md: 'md' }}>
+                      State <Field.RequiredIndicator />
                     </Field.Label>
                     <Input
                       type="text"
@@ -254,17 +338,18 @@ function Checkout() {
                       value={formData.state}
                       onChange={handleInputChange}
                       placeholder="NY"
-                      size={{ base: "md", md: "lg" }}
+                      size={{ base: 'md', md: 'lg' }}
                       required
                     />
+
                   </Field.Root>
                 </Flex>
 
                 {/* ZIP Code & Phone */}
-                <Flex gap={4} direction={{ base: "column", sm: "row" }}>
-                  <Field.Root flex={1}>
-                    <Field.Label fontSize={{ base: "sm", md: "md" }}>
-                      ZIP Code *
+                <Flex gap={4} direction={{ base: 'column', sm: 'row' }}>
+                  <Field.Root flex={1} required>
+                    <Field.Label fontSize={{ base: 'sm', md: 'md' }}>
+                      ZIP Code <Field.RequiredIndicator />
                     </Field.Label>
                     <Input
                       type="text"
@@ -272,14 +357,15 @@ function Checkout() {
                       value={formData.zipCode}
                       onChange={handleInputChange}
                       placeholder="10001"
-                      size={{ base: "md", md: "lg" }}
+                      size={{ base: 'md', md: 'lg' }}
                       required
                     />
+
                   </Field.Root>
 
-                  <Field.Root flex={1}>
-                    <Field.Label fontSize={{ base: "sm", md: "md" }}>
-                      Phone *
+                  <Field.Root flex={1} required>
+                    <Field.Label fontSize={{ base: 'sm', md: 'md' }}>
+                      Phone <Field.RequiredIndicator />
                     </Field.Label>
                     <Input
                       type="tel"
@@ -287,12 +373,13 @@ function Checkout() {
                       value={formData.phone}
                       onChange={handleInputChange}
                       placeholder="+1 (555) 123-4567"
-                      size={{ base: "md", md: "lg" }}
+                      size={{ base: 'md', md: 'lg' }}
                       required
                     />
                   </Field.Root>
                 </Flex>
               </Stack>
+              </Box>
             </Box>
 
             {/* Payment Method */}
@@ -309,11 +396,11 @@ function Checkout() {
                   bg="blue.100"
                   p={2}
                   borderRadius="lg"
-                  display={{ base: "none", sm: "block" }}
+                  display={{ base: 'none', sm: 'block' }}
                 >
                   <CreditCard size={20} color="#3b82f6" />
                 </Box>
-                <Heading size={{ base: "md", md: "lg" }} fontWeight="bold">
+                <Heading size={{ base: 'md', md: 'lg' }} fontWeight="bold">
                   Payment Method
                 </Heading>
               </Flex>
@@ -326,8 +413,8 @@ function Checkout() {
                 borderColor="blue.200"
               >
                 <Flex align="center" gap={2}>
-                  <Text fontSize={{ base: "2xl", md: "3xl" }}>💳</Text>
-                  <Text color="blue.700" fontSize={{ base: "sm", md: "md" }}>
+                  <Text fontSize={{ base: '2xl', md: '3xl' }}>💳</Text>
+                  <Text color="blue.700" fontSize={{ base: 'sm', md: 'md' }}>
                     This is a demo checkout. No payment will be processed.
                   </Text>
                 </Flex>
@@ -335,18 +422,20 @@ function Checkout() {
             </Box>
 
             {/* Mobile Place Order Button */}
-            <Box display={{ base: "block", lg: "none" }}>
+            <Box display={{ base: 'block', lg: 'none' }}>
               <Button
+                type="submit"
+                form={CHECKOUT_FORM_ID}
                 w="full"
                 bgGradient="to-r"
                 gradientFrom="purple.500"
                 gradientTo="blue.500"
                 color="white"
                 size="lg"
-                onClick={handlePlaceOrder}
+                disabled={!canPlaceOrder}
                 _hover={{
-                  transform: "translateY(-2px)",
-                  boxShadow: "xl",
+                  transform: 'translateY(-2px)',
+                  boxShadow: 'xl',
                 }}
                 transition="all 0.2s"
               >
@@ -362,8 +451,8 @@ function Checkout() {
               borderRadius="xl"
               boxShadow="lg"
               p={{ base: 4, md: 6 }}
-              position={{ base: "relative", lg: "sticky" }}
-              top={{ lg: "100px" }}
+              position={{ base: 'relative', lg: 'sticky' }}
+              top={{ lg: '100px' }}
               border="1px solid"
               borderColor="gray.200"
             >
@@ -372,11 +461,11 @@ function Checkout() {
                   bg="green.100"
                   p={2}
                   borderRadius="lg"
-                  display={{ base: "none", sm: "block" }}
+                  display={{ base: 'none', sm: 'block' }}
                 >
                   <ShoppingBag size={20} color="#22c55e" />
                 </Box>
-                <Heading size={{ base: "md", md: "lg" }} fontWeight="bold">
+                <Heading size={{ base: 'md', md: 'lg' }} fontWeight="bold">
                   Order Summary
                 </Heading>
               </Flex>
@@ -397,7 +486,7 @@ function Checkout() {
                       >
                         <Flex direction="column" flex={1} gap={1}>
                           <Text
-                            fontSize={{ base: "sm", md: "md" }}
+                            fontSize={{ base: 'sm', md: 'md' }}
                             fontWeight="medium"
                             noOfLines={1}
                           >
@@ -408,12 +497,12 @@ function Checkout() {
                           </Text>
                         </Flex>
                         <Text
-                          fontSize={{ base: "sm", md: "md" }}
+                          fontSize={{ base: 'sm', md: 'md' }}
                           fontWeight="bold"
                           color="purple.600"
                           whiteSpace="nowrap"
                         >
-                          ${(item.price * item.quantity).toFixed(2)}
+                          ${(parseUnitPrice(item) * item.quantity).toFixed(2)}
                         </Text>
                       </Flex>
                     ))}
@@ -436,20 +525,29 @@ function Checkout() {
               {/* Price Breakdown */}
               <Stack gap={3} mb={6}>
                 <Flex justify="space-between" color="gray.700">
-                  <Text fontSize={{ base: "sm", md: "md" }}>Subtotal</Text>
-                  <Text fontWeight="semibold" fontSize={{ base: "sm", md: "md" }}>
+                  <Text fontSize={{ base: 'sm', md: 'md' }}>Subtotal</Text>
+                  <Text
+                    fontWeight="semibold"
+                    fontSize={{ base: 'sm', md: 'md' }}
+                  >
                     ${subtotal.toFixed(2)}
                   </Text>
                 </Flex>
                 <Flex justify="space-between" color="gray.700">
-                  <Text fontSize={{ base: "sm", md: "md" }}>Tax (10%)</Text>
-                  <Text fontWeight="semibold" fontSize={{ base: "sm", md: "md" }}>
+                  <Text fontSize={{ base: 'sm', md: 'md' }}>Tax (10%)</Text>
+                  <Text
+                    fontWeight="semibold"
+                    fontSize={{ base: 'sm', md: 'md' }}
+                  >
                     ${tax.toFixed(2)}
                   </Text>
                 </Flex>
                 <Flex justify="space-between" color="gray.700">
-                  <Text fontSize={{ base: "sm", md: "md" }}>Shipping</Text>
-                  <Text fontWeight="semibold" fontSize={{ base: "sm", md: "md" }}>
+                  <Text fontSize={{ base: 'sm', md: 'md' }}>Shipping</Text>
+                  <Text
+                    fontWeight="semibold"
+                    fontSize={{ base: 'sm', md: 'md' }}
+                  >
                     {shipping === 0 ? (
                       <Badge colorPalette="green" variant="solid" px={2}>
                         FREE
@@ -463,11 +561,11 @@ function Checkout() {
                 <Separator />
 
                 <Flex justify="space-between" align="center">
-                  <Text fontSize={{ base: "lg", md: "xl" }} fontWeight="bold">
+                  <Text fontSize={{ base: 'lg', md: 'xl' }} fontWeight="bold">
                     Total
                   </Text>
                   <Text
-                    fontSize={{ base: "xl", md: "2xl" }}
+                    fontSize={{ base: 'xl', md: '2xl' }}
                     fontWeight="bold"
                     bgGradient="to-r"
                     gradientFrom="green.500"
@@ -480,18 +578,20 @@ function Checkout() {
               </Stack>
 
               {/* Desktop Action Buttons */}
-              <Stack gap={3} display={{ base: "none", lg: "flex" }}>
+              <Stack gap={3} display={{ base: 'none', lg: 'flex' }}>
                 <Button
+                  type="submit"
+                  form={CHECKOUT_FORM_ID}
                   w="full"
                   bgGradient="to-r"
-                  gradientFrom="purple.500"
-                  gradientTo="blue.500"
+                  gradientFrom="green.700"
+                  gradientTo="green.600"
                   color="white"
                   size="lg"
-                  onClick={handlePlaceOrder}
+                  disabled={!canPlaceOrder}
                   _hover={{
-                    transform: "translateY(-2px)",
-                    boxShadow: "xl",
+                    transform: 'translateY(-2px)',
+                    boxShadow: 'xl',
                   }}
                   transition="all 0.2s"
                   fontWeight="600"
@@ -499,8 +599,13 @@ function Checkout() {
                   Place Order
                 </Button>
 
-                <Link to="/product" style={{ textDecoration: "none" }}>
-                  <Button w="full" variant="outline" colorPalette="purple" size="md">
+                <Link to="/product" style={{ textDecoration: 'none' }}>
+                  <Button
+                    w="full"
+                    variant="outline"
+                    colorPalette="purple"
+                    size="md"
+                  >
                     Continue Shopping
                   </Button>
                 </Link>
@@ -535,14 +640,14 @@ function Checkout() {
         </Grid>
 
         {/* Add padding for mobile fixed button */}
-        <Box h={{ base: "20px", lg: "0" }} />
+        <Box h={{ base: '20px', lg: '0' }} />
       </Box>
 
       {/* Success Modal */}
       <DialogRoot
         open={isOrderPlaced}
         onOpenChange={(e) => !e.open && handleCloseModal()}
-        size={{ base: "sm", md: "md" }}
+        size={{ base: 'sm', md: 'md' }}
         placement="center"
       >
         <Portal>
@@ -551,7 +656,7 @@ function Checkout() {
               <DialogTitle>
                 <Flex align="center" justify="center" gap={2}>
                   <CheckCircle size={28} color="green" />
-                  <Text fontSize={{ base: "lg", md: "xl" }}>
+                  <Text fontSize={{ base: 'lg', md: 'xl' }}>
                     Order Placed Successfully!
                   </Text>
                 </Flex>
@@ -560,7 +665,12 @@ function Checkout() {
             </DialogHeader>
 
             <DialogBody>
-              <Flex direction="column" align="center" gap={4} py={{ base: 4, md: 6 }}>
+              <Flex
+                direction="column"
+                align="center"
+                gap={4}
+                py={{ base: 4, md: 6 }}
+              >
                 {/* Sparkle Animation */}
                 <Box position="relative">
                   <Box
@@ -597,37 +707,41 @@ function Checkout() {
                 </Box>
 
                 <Text
-                  fontSize={{ base: "md", md: "lg" }}
+                  fontSize={{ base: 'md', md: 'lg' }}
                   textAlign="center"
                   fontWeight="medium"
                 >
                   Thank you for your order!
                 </Text>
                 <Text
-                  fontSize={{ base: "xs", md: "sm" }}
+                  fontSize={{ base: 'xs', md: 'sm' }}
                   color="gray.600"
                   textAlign="center"
                   px={{ base: 2, md: 0 }}
                 >
                   Your order has been successfully placed.
                   <br />
-                  Order total: <strong>${total.toFixed(2)}</strong>
+                  Order total:{' '}
+                  <strong>${orderSuccess?.total?.toFixed(2) ?? '0.00'}</strong>
                 </Text>
-                {formData.email && (
+                {orderSuccess?.email && (
                   <Text fontSize="xs" color="gray.500" textAlign="center">
-                    A confirmation email has been sent to {formData.email}
+                    A confirmation email has been sent to {orderSuccess.email}
                   </Text>
                 )}
               </Flex>
             </DialogBody>
 
             <DialogFooter>
-              <Flex w="full" gap={3} direction={{ base: "column", sm: "row" }}>
+              <Flex w="full" gap={3} direction={{ base: 'column', sm: 'row' }}>
                 <Button
                   flex={1}
                   variant="outline"
-                  onClick={() => navigate("/order")}
-                  size={{ base: "md", md: "lg" }}
+                  onClick={() => {
+                    finalizeOrder()
+                    navigate('/order')
+                  }}
+                  size={{ base: 'md', md: 'lg' }}
                 >
                   View Orders
                 </Button>
@@ -638,7 +752,7 @@ function Checkout() {
                   gradientTo="blue.500"
                   color="white"
                   onClick={handleCloseModal}
-                  size={{ base: "md", md: "lg" }}
+                  size={{ base: 'md', md: 'lg' }}
                 >
                   Continue Shopping
                 </Button>
@@ -664,7 +778,7 @@ function Checkout() {
         `}
       </style>
     </Box>
-  );
+  )
 }
 
-export default Checkout;
+export default Checkout

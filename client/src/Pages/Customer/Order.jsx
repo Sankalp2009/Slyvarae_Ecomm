@@ -36,6 +36,28 @@ import {
 
 import { useSelector } from "react-redux";
 
+const getOrderDisplayTotal = (order) => {
+  if (
+    typeof order.subtotal === "number" &&
+    typeof order.tax === "number" &&
+    typeof order.shipping === "number"
+  ) {
+    return order.subtotal + order.tax + order.shipping;
+  }
+
+  if (Array.isArray(order.items) && order.items.length > 0) {
+    const subtotal = order.items.reduce(
+      (acc, item) =>
+        acc + (Number(item.price) || 0) * (item.quantity || 1),
+      0
+    );
+    const tax = subtotal * 0.1;
+    const shipping = subtotal > 50 ? 0 : 10;
+    return subtotal + tax + shipping;
+  }
+
+  return typeof order.totalAmount === "number" ? order.totalAmount : 0;
+};
 
 function Order() {
   const navigate = useNavigate();
@@ -302,7 +324,7 @@ function Order() {
                           Total
                         </Text>
                         <Text fontWeight="bold" fontSize="lg" color="green.600">
-                          ${order.totalAmount.toFixed(2)}
+                          ${getOrderDisplayTotal(order).toFixed(2)}
                         </Text>
                       </Box>
                     </Flex>
