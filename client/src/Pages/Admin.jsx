@@ -56,7 +56,7 @@ import {
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import axios from "axios";
-import { updateOrderStatus } from "../Redux/Order_Reducer/action.jsx";
+import { updateOrderStatus, deleteOrder } from "../Redux/Order_Reducer/action.jsx";
 import { useDispatch } from "react-redux";
 
 const API_BASE_URL = "https://slyvarae-ecomm.onrender.com/api/v1";
@@ -97,6 +97,18 @@ function Admin() {
   useEffect(() => {
     fetchDashboardData();
   }, []);
+
+  useEffect(() => {
+    setStats((prev) => ({
+      ...prev,
+      totalOrders: Order.length,
+      totalRevenue: Order.reduce(
+        (sum, order) => sum + (order.totalAmount || 0),
+        0
+      ),
+      totalCustomers: new Set(Order.map((o) => o.userId)).size,
+    }));
+  }, [Order]);
 
   const fetchDashboardData = async () => {
     setLoading(true);
@@ -161,6 +173,28 @@ function Admin() {
         description: "Failed to update order status",
       });
     }
+  };
+
+  const handleDeleteOrder = (orderId) => {
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this order? This cannot be undone."
+      )
+    ) {
+      return;
+    }
+
+    dispatch(deleteOrder(orderId));
+
+    if (selectedOrder?.id === orderId) {
+      setIsOrderModalOpen(false);
+      setSelectedOrder(null);
+    }
+
+    toaster.success({
+      title: "Order Deleted",
+      description: `Order #${orderId} has been removed`,
+    });
   };
 
   const handleDeleteProduct = async (productId) => {
@@ -486,17 +520,29 @@ function Admin() {
                               ${order.totalAmount.toFixed(2)}
                             </Table.Cell>
                             <Table.Cell>
-                              <IconButton
-                                size="sm"
-                                variant="ghost"
-                                colorPalette="purple"
-                                onClick={() => {
-                                  setSelectedOrder(order);
-                                  setIsOrderModalOpen(true);
-                                }}
-                              >
-                                <Eye size={16} />
-                              </IconButton>
+                              <Flex gap={1}>
+                                <IconButton
+                                  size="sm"
+                                  variant="ghost"
+                                  colorPalette="purple"
+                                  aria-label="View order"
+                                  onClick={() => {
+                                    setSelectedOrder(order);
+                                    setIsOrderModalOpen(true);
+                                  }}
+                                >
+                                  <Eye size={16} />
+                                </IconButton>
+                                <IconButton
+                                  size="sm"
+                                  variant="ghost"
+                                  colorPalette="red"
+                                  aria-label="Delete order"
+                                  onClick={() => handleDeleteOrder(order.id)}
+                                >
+                                  <Trash2 size={16} />
+                                </IconButton>
+                              </Flex>
                             </Table.Cell>
                           </Table.Row>
                         );
@@ -549,12 +595,22 @@ function Admin() {
                               size="xs"
                               variant="ghost"
                               colorPalette="purple"
+                              aria-label="View order"
                               onClick={() => {
                                 setSelectedOrder(order);
                                 setIsOrderModalOpen(true);
                               }}
                             >
                               <Eye size={14} />
+                            </IconButton>
+                            <IconButton
+                              size="xs"
+                              variant="ghost"
+                              colorPalette="red"
+                              aria-label="Delete order"
+                              onClick={() => handleDeleteOrder(order.id)}
+                            >
+                              <Trash2 size={14} />
                             </IconButton>
                           </Flex>
                         </Flex>
@@ -703,17 +759,29 @@ function Admin() {
                               ${order.totalAmount.toFixed(2)}
                             </Table.Cell>
                             <Table.Cell>
-                              <IconButton
-                                size="sm"
-                                variant="ghost"
-                                colorPalette="purple"
-                                onClick={() => {
-                                  setSelectedOrder(order);
-                                  setIsOrderModalOpen(true);
-                                }}
-                              >
-                                <Eye size={16} />
-                              </IconButton>
+                              <Flex gap={1}>
+                                <IconButton
+                                  size="sm"
+                                  variant="ghost"
+                                  colorPalette="purple"
+                                  aria-label="View order"
+                                  onClick={() => {
+                                    setSelectedOrder(order);
+                                    setIsOrderModalOpen(true);
+                                  }}
+                                >
+                                  <Eye size={16} />
+                                </IconButton>
+                                <IconButton
+                                  size="sm"
+                                  variant="ghost"
+                                  colorPalette="red"
+                                  aria-label="Delete order"
+                                  onClick={() => handleDeleteOrder(order.id)}
+                                >
+                                  <Trash2 size={16} />
+                                </IconButton>
+                              </Flex>
                             </Table.Cell>
                           </Table.Row>
                         );
@@ -814,12 +882,22 @@ function Admin() {
                               size="xs"
                               variant="ghost"
                               colorPalette="purple"
+                              aria-label="View order"
                               onClick={() => {
                                 setSelectedOrder(order);
                                 setIsOrderModalOpen(true);
                               }}
                             >
                               <Eye size={14} />
+                            </IconButton>
+                            <IconButton
+                              size="xs"
+                              variant="ghost"
+                              colorPalette="red"
+                              aria-label="Delete order"
+                              onClick={() => handleDeleteOrder(order.id)}
+                            >
+                              <Trash2 size={14} />
                             </IconButton>
                           </Flex>
                         </Flex>
@@ -1136,14 +1214,33 @@ function Admin() {
             )}
           </DialogBody>
           <DialogFooter p={{ base: 4, md: 6 }} bg="gray.50">
-            <Button
-              onClick={() => setIsOrderModalOpen(false)}
-              colorPalette="purple"
-              w={{ base: "full", sm: "auto" }}
-              borderRadius="full"
+            <Flex
+              w="full"
+              gap={3}
+              justify="flex-end"
+              direction={{ base: "column", sm: "row" }}
             >
-              Close
-            </Button>
+              {selectedOrder && (
+                <Button
+                  variant="outline"
+                  colorPalette="red"
+                  w={{ base: "full", sm: "auto" }}
+                  borderRadius="full"
+                  onClick={() => handleDeleteOrder(selectedOrder.id)}
+                >
+                  <Trash2 size={16} />
+                  Delete Order
+                </Button>
+              )}
+              <Button
+                onClick={() => setIsOrderModalOpen(false)}
+                colorPalette="purple"
+                w={{ base: "full", sm: "auto" }}
+                borderRadius="full"
+              >
+                Close
+              </Button>
+            </Flex>
           </DialogFooter>
         </DialogContent>
       </DialogRoot>
