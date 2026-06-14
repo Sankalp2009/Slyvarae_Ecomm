@@ -80,10 +80,12 @@ function Checkout() {
   const { user } = useSelector((state) => state.auth)
   const [orderSuccess, setOrderSuccess] = useState(null)
   const [isOrderPlaced, setIsOrderPlaced] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState(InitialState)
 
   const { subtotal, tax, shipping, total } = computeOrderTotals(items)
-  const canPlaceOrder = items.length > 0
+  const canPlaceOrder =
+    items.length > 0 && !isOrderPlaced && !isSubmitting
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -95,6 +97,10 @@ function Checkout() {
 
   const handleSubmit = (e) => {
     e.preventDefault()
+
+    if (isOrderPlaced) {
+      return
+    }
 
     if (items.length === 0) {
       toaster.error({
@@ -135,6 +141,8 @@ function Checkout() {
 
     const totals = computeOrderTotals(items)
 
+    setIsSubmitting(true)
+
     const order = {
       id: Date.now().toString(),
       userId: user?._id || 'guest',
@@ -165,23 +173,23 @@ function Checkout() {
 
     dispatch({ type: Order_Action_Type.ORDER_CREATED, payload: order })
 
-    // Snapshot before any cart clear — modal must not read live `total` from empty cart
     setOrderSuccess({
       total: totals.total,
       email: shippingFields.email,
     })
     setIsOrderPlaced(true)
     setFormData(InitialState)
+    dispatch({ type: Action_Type.CLEAR_CART })
+    setIsSubmitting(false)
   }
 
-  const finalizeOrder = () => {
-    dispatch({ type: Action_Type.CLEAR_CART })
+  const closeSuccessModal = () => {
     setIsOrderPlaced(false)
     setOrderSuccess(null)
   }
 
   const handleCloseModal = () => {
-    finalizeOrder()
+    closeSuccessModal()
   }
 
   return (
@@ -738,7 +746,7 @@ function Checkout() {
                   flex={1}
                   variant="outline"
                   onClick={() => {
-                    finalizeOrder()
+                    closeSuccessModal()
                     navigate('/order')
                   }}
                   size={{ base: 'md', md: 'lg' }}
