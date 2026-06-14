@@ -9,9 +9,15 @@ export const reducer = (currentState = InitialState, action) => {
   const { type, payload } = action
   switch (type) {
     case 'GET_REQUEST':
+      return {
+        ...currentState,
+        IsError: null,
+        IsLoading: true,
+      }
     case 'GET_REQUEST_BY_ID':
       return {
         ...currentState,
+        selectedProduct: null,
         IsError: null,
         IsLoading: true,
       }
@@ -30,10 +36,16 @@ export const reducer = (currentState = InitialState, action) => {
         IsError: null,
       }
     case 'GET_FAILURE':
+      return {
+        ...currentState,
+        IsError: payload ?? true,
+        IsLoading: false,
+      }
     case 'GET_FAILURE_BY_ID':
       return {
         ...currentState,
-        IsError: true,
+        selectedProduct: null,
+        IsError: payload ?? true,
         IsLoading: false,
       }
 

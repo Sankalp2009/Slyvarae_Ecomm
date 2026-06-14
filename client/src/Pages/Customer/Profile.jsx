@@ -20,15 +20,15 @@ import {
   Heading,
   Card,
   Button,
-  Input,
   Grid,
   Badge,
   Avatar,
 } from "@chakra-ui/react";
-// import { toaster } from "../../components/ui/toaster.jsx";
+import { isAdminRole } from "../../Utils/authHeaders.js";
 
 function Profile() {
   const { user } = useSelector((state) => state.auth);
+  const isAdmin = isAdminRole(user?.role);
 
   const navigate = useNavigate();
 
@@ -128,7 +128,7 @@ function Profile() {
                           {user.role}
                         </Text>
                       </Box>
-                      {user?.role === "admin" && (
+                      {isAdmin && (
                         <Badge colorPalette="blue" size="lg">
                           Admin
                         </Badge>
@@ -235,7 +235,7 @@ function Profile() {
                 </Button>
 
                 {/* Admin Dashboard (if admin) */}
-                {user?.role === "admin" && (
+                {isAdmin && (
                   <Button
                     onClick={() => navigate("/admin")}
                     variant="solid"

@@ -28,6 +28,12 @@ export const reducer = (currentState = InitialState, action) => {
       };
     }
 
+    case "ORDER_DELETED":
+      return {
+        ...currentState,
+        Order: currentState.Order.filter((order) => order.id !== payload),
+      };
+
     default:
       return currentState;
   }

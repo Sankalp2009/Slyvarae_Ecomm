@@ -29,12 +29,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router";
 import { Action_Type } from "../Redux/Auth_Reducer/action.jsx";
 import { Action_Type as cart } from "../Redux/Cart_Reducer/action.jsx";
+import { isAdminRole } from "../Utils/authHeaders.js";
 
 function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const { IsAuth, user } = useSelector((state) => state.auth);
-  const isAdmin = user?.role === "admin";
+  const isAdmin = isAdminRole(user?.role);
   const nav = useNavigate();
   const location = useLocation();
   const { items } = useSelector((state) => state.cart);
