@@ -1,10 +1,10 @@
-// components/AdminRoute.jsx
-import {useSelector} from "react-redux"
-import {Navigate} from "react-router"
-const AdminRoute = ({ children }) => {
-  const { user, IsAuth } = useSelector((state) => state.auth);
+import { useSelector } from "react-redux";
+import { Navigate } from "react-router";
 
-  if (!IsAuth || !user) {
+const AdminRoute = ({ children }) => {
+  const { user, IsAuth, access_token } = useSelector((state) => state.auth);
+
+  if (!IsAuth || !access_token || !user) {
     return <Navigate to="/signin" replace />;
   }
 
@@ -15,4 +15,4 @@ const AdminRoute = ({ children }) => {
   return children;
 };
 
-export  default AdminRoute;
+export default AdminRoute;
