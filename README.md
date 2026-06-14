@@ -810,7 +810,7 @@ DATABASE_URI=mongodb+srv://...
 JWT_SECRET_KEY=your-secret-key-here
 
 # Super Admin (for seeding) | Admin Access
-SUPER_ADMIN_EMAIL=admin@sylvarae.com
+SUPER_ADMIN_EMAIL=admin@test.com
 SUPER_ADMIN_PASSWORD=admin123
 SUPER_ADMIN_NAME=Super Admin
 
