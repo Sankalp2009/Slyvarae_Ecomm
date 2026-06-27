@@ -55,11 +55,6 @@ npm run preview
 # Run linter
 npm run lint
 
-# Run tests
-npm test
-
-# Run tests once (CI mode)
-npm run test:run
 ```
 
 ## Architecture
@@ -189,19 +184,6 @@ npm run test:run
 - Imports from `@chakra-ui/react`
 - Theme provider is `next-themes` for light/dark mode support
 
-## Environment Variables
-
-### Server (server/config.env)
-```env
-DATABASE_URI=mongodb+srv://...
-JWT_SECRET_KEY=your-secret-key
-SUPER_ADMIN_EMAIL=admin@shopsy.com
-SUPER_ADMIN_PASSWORD=admin123
-SUPER_ADMIN_NAME=Super Admin
-NODE_ENV=production
-PORT=8080
-```
-
 ### Client
 - No environment variables are currently required
 - API URL is hardcoded based on NODE_ENV in server CORS config
@@ -241,12 +223,6 @@ PORT=8080
 - Run with: `npm test` (requires `--experimental-vm-modules` flag)
 - Uses Jest with Babel transform for ES modules
 - Setup file at `__tests__/setup.js`
-
-### Client Tests
-- Uses Vitest with jsdom environment
-- Setup file at `src/test/setup.js`
-- Run with: `npm test` (watch mode) or `npm run test:run` (once)
-- Testing library: `@testing-library/react`
 
 ## Important Notes
 
